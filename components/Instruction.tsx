@@ -15,5 +15,6 @@ const styles = StyleSheet.create({
   instruction: {
     color: "white",
     fontSize: 24,
+    fontFamily: "exo-regular",
   },
 });

@@ -1,10 +1,11 @@
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, FlatList, StyleSheet, Text, View } from "react-native";
 import Title from "../components/Title";
 import { useEffect, useState } from "react";
 import NumberContainer from "../components/NumberContainer";
 import PrimaryButton from "../components/PrimaryButton";
 import Instruction from "../components/Instruction";
 import Card from "../components/Card";
+import { Ionicons } from "@expo/vector-icons";
 
 const generateRandoNumber = (min: number, max: number, exclude: number) => {
   const randomNumb = Math.floor(Math.random() * (max - min)) + min;
@@ -21,12 +22,24 @@ let maxBoundary = 100;
 export default function GameScreen({
   userNumber,
   setGameOver,
+  setCount,
+  count,
 }: {
   userNumber: number;
   setGameOver: (data: boolean) => void;
+  setCount: (dtat: number) => void;
+  count: number;
 }) {
   const initialGuess = generateRandoNumber(1, 100, userNumber);
-  const [currentGuess, setCurrentGuess] = useState(initialGuess);
+  const [currentGuess, setCurrentGuess] = useState<number | undefined>(
+    initialGuess
+  );
+  const [guessRound, setGuessRound] = useState<number[]>([initialGuess!]);
+
+  useEffect(() => {
+    minBoundary = 1;
+    maxBoundary = 100;
+  }, []);
 
   useEffect(() => {
     if (currentGuess === userNumber) {
@@ -44,10 +57,10 @@ export default function GameScreen({
       ]);
       return;
     }
-    if (direction === "lower") {
-      maxBoundary = currentGuess!;
-    } else {
-      minBoundary = currentGuess! + 1;
+    if (direction === "lower" && currentGuess) {
+      maxBoundary = currentGuess;
+    } else if (currentGuess) {
+      minBoundary = currentGuess + 1;
     }
     const newRandomNumber = generateRandoNumber(
       minBoundary,
@@ -55,6 +68,8 @@ export default function GameScreen({
       currentGuess!
     );
     setCurrentGuess(newRandomNumber);
+    setGuessRound((prev) => [newRandomNumber!, ...prev]);
+    setCount(count + 1);
   };
   return (
     <View style={styles.container}>
@@ -67,16 +82,22 @@ export default function GameScreen({
         <View style={styles.actionContainer}>
           <View style={styles.buttonContainer}>
             <PrimaryButton onPress={() => nextGuessHandler("lower")}>
-              -
+              <Ionicons name="remove" size={16} />
             </PrimaryButton>
           </View>
           <View style={styles.buttonContainer}>
             <PrimaryButton onPress={() => nextGuessHandler("greater")}>
-              +
+              <Ionicons name="add" size={16} />
             </PrimaryButton>
           </View>
         </View>
       </Card>
+      <View>
+        <FlatList
+          data={guessRound}
+          renderItem={({ item }) => <Text key={item}>{item}</Text>}
+        />
+      </View>
     </View>
   );
 }

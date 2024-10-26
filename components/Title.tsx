@@ -9,7 +9,7 @@ export default function Title({ children }: { children: ReactNode }) {
 const styles = StyleSheet.create({
   title: {
     color: "white",
-    fontWeight: "bold",
+    fontFamily: "exo-bold",
     fontSize: 24,
     borderWidth: 2,
     borderColor: "white",
