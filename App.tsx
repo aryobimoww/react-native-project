@@ -8,17 +8,20 @@ import {
 } from "react-native";
 import StartGameScreen from "./screen/StartGameScreen";
 import { LinearGradient } from "expo-linear-gradient";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import GameScreen from "./screen/GameScreen";
 import Colors from "./constant/Colors";
 import GameOverScreen from "./screen/GameOverScreen";
-import { useFonts } from "expo-font";
+import { loadAsync, useFonts } from "expo-font";
 import AppLoading from "expo-app-loading";
+import * as SplashScreen from "expo-splash-screen";
+import Entypo from "@expo/vector-icons/Entypo";
 
 export default function App() {
   const [userNumber, setUserNumber] = useState<number | undefined>();
   const [gameOver, setGameOver] = useState(true);
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(1);
+  const [appIsReady, setAppIsReady] = useState(false);
   const pickedNumber = (number: number) => {
     setUserNumber(number);
     setGameOver(false);
@@ -31,9 +34,38 @@ export default function App() {
     "exo-bold": require("./assets/fonts/Exo/static/Exo-Bold.ttf"),
   });
 
-  // if (!fontLoaded) {
-  //   return <AppLoading />;
-  // }
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // Pre-load fonts, make any API calls you need to do here
+        await loadAsync(Entypo.font);
+        // Artificially delay for two seconds to simulate a slow loading
+        // experience. Please remove this if you copy and paste the code!
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        // Tell the application to render
+        setAppIsReady(true);
+      }
+    }
+
+    prepare();
+  }, []);
+
+  const onLayoutRootView = useCallback(async () => {
+    if (appIsReady && fontLoaded) {
+      // This tells the splash screen to hide immediately! If we call this after
+      // `setAppIsReady`, then we may see a blank screen while the app is
+      // loading its initial state and rendering its first pixels. So instead,
+      // we hide the splash screen once we know the root view has already
+      // performed layout.
+      await SplashScreen.hideAsync();
+    }
+  }, [appIsReady]);
+
+  if (!appIsReady) {
+    return null;
+  }
 
   const handleCount = (data: number) => {
     setCount(data);
@@ -42,10 +74,15 @@ export default function App() {
   const handleRestart = () => {
     setUserNumber(undefined);
     setGameOver(false);
-    setCount(0);
+    setCount(1);
   };
 
-  let screen = <StartGameScreen onPickedNumber={pickedNumber} />;
+  let screen = (
+    <StartGameScreen
+      onPickedNumber={pickedNumber}
+      onlayoutRootView={onLayoutRootView}
+    />
+  );
 
   if (userNumber) {
     screen = (
@@ -71,6 +108,7 @@ export default function App() {
       colors={[Colors.primary600, Colors.secondary500]}
       locations={[0.4, 0.7]}
       style={styles.rootContainer}
+      onLayout={onLayoutRootView}
     >
       <ImageBackground
         style={styles.rootContainer}
@@ -78,7 +116,9 @@ export default function App() {
         resizeMode="cover"
         imageStyle={styles.backgroundImage}
       >
-        <SafeAreaView style={styles.rootContainer}>{screen}</SafeAreaView>
+        <SafeAreaView style={styles.rootContainer} onLayout={onLayoutRootView}>
+          {screen}
+        </SafeAreaView>
       </ImageBackground>
     </LinearGradient>
   );

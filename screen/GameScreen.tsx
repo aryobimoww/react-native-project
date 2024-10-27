@@ -6,6 +6,7 @@ import PrimaryButton from "../components/PrimaryButton";
 import Instruction from "../components/Instruction";
 import Card from "../components/Card";
 import { Ionicons } from "@expo/vector-icons";
+import GuessLog from "../components/GuessLogI";
 
 const generateRandoNumber = (min: number, max: number, exclude: number) => {
   const randomNumb = Math.floor(Math.random() * (max - min)) + min;
@@ -44,6 +45,7 @@ export default function GameScreen({
   useEffect(() => {
     if (currentGuess === userNumber) {
       setGameOver(true);
+      setCount(guessRound.length);
     }
   }, [currentGuess]);
 
@@ -69,7 +71,6 @@ export default function GameScreen({
     );
     setCurrentGuess(newRandomNumber);
     setGuessRound((prev) => [newRandomNumber!, ...prev]);
-    setCount(count + 1);
   };
   return (
     <View style={styles.container}>
@@ -92,10 +93,13 @@ export default function GameScreen({
           </View>
         </View>
       </Card>
-      <View>
+      <View style={{ flex: 1 }}>
         <FlatList
           data={guessRound}
-          renderItem={({ item }) => <Text key={item}>{item}</Text>}
+          renderItem={({ item, index }) => (
+            <GuessLog roundNumber={guessRound.length - index} guess={item} />
+          )}
+          keyExtractor={(item) => item.toString()}
         />
       </View>
     </View>

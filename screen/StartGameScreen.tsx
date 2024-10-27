@@ -8,9 +8,11 @@ import Instruction from "../components/Instruction";
 
 interface StartGameScreenProps {
   onPickedNumber: (data: number) => void;
+  onlayoutRootView: () => Promise<void>;
 }
 export default function StartGameScreen({
   onPickedNumber,
+  onlayoutRootView,
 }: StartGameScreenProps) {
   const [enterNumber, setEnterNumber] = useState("");
 
@@ -32,7 +34,7 @@ export default function StartGameScreen({
     setEnterNumber("");
   };
   return (
-    <View style={styles.rootContainer}>
+    <View style={styles.rootContainer} onLayout={onlayoutRootView}>
       <Title>Guess my number</Title>
       <Card>
         <Instruction>Enter Number</Instruction>
